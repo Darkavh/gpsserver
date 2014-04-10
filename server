@@ -19,7 +19,7 @@ var server = net.createServer(function(c) { //'connection' listener
 			  shirota = convertPoint(parseFloat(coords[1].substr(1)));
 			  dolgoda = convertPoint(parseFloat(coords[2].substr(1)));
 	    }
-	    logString += time + '\r\n' + chunk.toString();
+	    logString += '\r\n' + time + '\r\n' + chunk.toString();
 			console.log(time);
 	    console.log(chunk.toString());
 	    if( shirota ){
@@ -29,7 +29,7 @@ var server = net.createServer(function(c) { //'connection' listener
 
 	    console.log('____________________');
 
-		  fs.appendFile("D:/test.data", logString, function(err) {
+		  fs.appendFile("D:/test.data", logString + '\r\n---------------------------------------------------------------------------', function(err) {
 			  if(err)
 				  console.log(err);
 
