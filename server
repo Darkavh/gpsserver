@@ -1,5 +1,7 @@
 var net = require('net');
+var fs = require('fs');
 var moment = require('moment');
+
 var server = net.createServer(function(c) { //'connection' listener
   console.log('server connected');
   c.on('end', function() {
@@ -7,9 +9,31 @@ var server = net.createServer(function(c) { //'connection' listener
   });
   c.write('hello\r\n');
   c.on("data", function(chunk){
-		var time = moment().format('YYYY-MM-DD HH:mm:ss');
-		console.log(time);
-      console.log(chunk.toString());
+			var time = moment().format('YYYY-MM-DD HH:mm:ss');
+		  var str = chunk.toString();
+		  var coords = /(A[^N]+)(N[^E]+)/i.exec(str);
+	    var shirota, dolgoda, logString = '';
+
+	    if( coords )
+	    {
+			  shirota = convertPoint(parseFloat(coords[1].substr(1)));
+			  dolgoda = convertPoint(parseFloat(coords[2].substr(1)));
+	    }
+	    logString += time + '\r\n' + chunk.toString();
+			console.log(time);
+	    console.log(chunk.toString());
+	    if( shirota ){
+	      console.log(shirota, ', ', dolgoda);
+		    logString += '\r\n' + shirota + ',' + dolgoda;
+	    }
+
+	    console.log('____________________');
+
+		  fs.appendFile("D:/test.data", logString, function(err) {
+			  if(err)
+				  console.log(err);
+
+		  });
 	  });
 	  
 });
@@ -17,3 +41,13 @@ server.listen(9997, function() { //'listening' listener
   console.log('server bound to 9997');
   
 });
+
+function convertPoint(point){
+	var integerPart = ~~(Math.round(point)/100),
+			decimalPart = (point - (integerPart * 100)) / 60;
+	return (integerPart + decimalPart).toFixed(6);
+}
+
+function toSign(c){
+	return c === "S" || c === "W" ? -1 : 1;
+}
