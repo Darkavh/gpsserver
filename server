@@ -9,33 +9,52 @@ var server = net.createServer(function(c) { //'connection' listener
   });
   c.write('hello\r\n');
   c.on("data", function(chunk){
-			var time = moment().format('YYYY-MM-DD HH:mm:ss');
-		  var str = chunk.toString();
-		  var coords = /(A[^N]+)(N[^E]+)/i.exec(str);
-	    var shirota, dolgoda, logString = '';
-
-	    if( coords )
-	    {
-			  shirota = convertPoint(parseFloat(coords[1].substr(1)));
-			  dolgoda = convertPoint(parseFloat(coords[2].substr(1)));
-	    }
+		var time = moment().format('YYYY-MM-DD HH:mm:ss');
+		var str = chunk.toString();
+		var inf = /(\d+)BR(\d+)(A|V)([^N]+)N([^E]+)E(\d+\.\d+\.\d+)(.\d+)/i.exec(str);
+		var fullString, iemi, date, A, latitude, longitude, speed, dontknow, parsedString = '';
+		if( inf ) {
+			iemi = (inf[1])?inf[1]:'';
+			date = (inf[2])?inf[2]:'';
+			latitude = (inf[4])?convertPoint(parseFloat(inf[4])):'';
+			longitude = (inf[5])?convertPoint(parseFloat(inf[5])):'';
+			speed = (inf[6])?inf[6]:'';
+			dontknow = (inf[7])?inf[7]:'';
+			if( latitude) {
+				parsedString = date + ';' + latitude + ';' + longitude + ';' + speed + '\r\n';
+			}
+		}
+		if(!!latitude)
+			var coords = /(A[^N]+)(N[^E]+)/i.exec(str);
+			
+		var shirota, dolgoda, logString = '';
+		
+		if( coords )
+		{
+			  latitude = convertPoint(parseFloat(coords[1].substr(1)));
+			  longitude = convertPoint(parseFloat(coords[2].substr(1)));
+		}
 	    logString += '\r\n' + time + '\r\n' + chunk.toString();
-			console.log(time);
+		console.log(time);
 	    console.log(chunk.toString());
-	    if( shirota ){
-	      console.log(shirota, ', ', dolgoda);
-		    logString += '\r\n' + shirota + ',' + dolgoda;
+	    if( latitude )
+		{
+			console.log(latitude, ', ', longitude);
+			logString += '\r\n' + latitude + ',' + longitude;
 	    }
 
 	    console.log('____________________');
 
-		  fs.appendFile("D:/test.data", logString + '\r\n---------------------------------------------------------------------------', function(err) {
-			  if(err)
-				  console.log(err);
+		fs.appendFile("C:/home/test.data", logString + '\r\n---------------------------------------------------------------------------', function(err) {
+			if(err)
+				console.log(err);
+		});
+		if( parsedString){
+			fs.appendFile("C:/home/coordinate.csv", parsedString, function(err){});
+		}
+		  
+	});
 
-		  });
-	  });
-	  
 });
 server.listen(9997, function() { //'listening' listener
   console.log('server bound to 9997');
